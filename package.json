@@ -1,0 +1,17 @@
+{
+  "name": "zero-patients",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Jackbox-style Pandemic clone — shared-screen board, phone controllers",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
