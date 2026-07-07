@@ -9,11 +9,13 @@ Pure game engine, authoritative server, thin clients.
 
 ```
 packages/
-├── shared/    # protocol: zod action/event schemas + the city graph (generated
-│              # from the original repo's data, with its adjacency bugs fixed)
+├── shared/    # protocol: zod action/event/room schemas, GameSnapshot, and the city
+│              # graph (generated from the original repo's data, adjacency bugs fixed)
 └── engine/    # the rules: a pure `applyAction(state, playerId, action)` reducer.
                # No I/O, seeded RNG in-state → deterministic and replayable.
-apps/          # (phase 2/3) socket server + web client
+apps/
+└── server/    # socket.io: rooms, reconnect tokens, action routing, snapshots
+               # `npm run dev -w @zero-patients/server` (PORT=3001)
 ```
 
 The engine validates every action and returns `{ state, events }` — events drive
@@ -25,7 +27,9 @@ board animations. Clients never enforce rules.
       4 roles (medic, scientist, researcher, operations expert), hand limit
 - [ ] Event cards (Airlift etc.), remaining roles (dispatcher, quarantine specialist,
       contingency planner), ops-expert charter power
-- [ ] Server: rooms, socket protocol, reconnect tokens
+- [x] Server: 4-letter room codes, socket.io protocol (zod-validated at the edge),
+      reconnect tokens, board/spectator watch, snapshot redaction (deck order stays server-side)
+- [ ] Redis-backed rooms (in-memory for now; single node)
 - [ ] Web: board (TV) + controller (phone) — see `../pandemic-board-mockup.html`
       and `../pandemic-controller-mockup.html` for the design direction
 
