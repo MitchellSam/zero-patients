@@ -29,6 +29,7 @@ export function toSnapshot(state: GameState): GameSnapshot {
     researchStations: [...state.researchStations],
     outbreaks: state.outbreaks,
     infectionRate: infectionRate(state),
+    infectionRateIndex: state.infectionRateIndex,
     result: state.result ? { ...state.result } : null,
   };
 }

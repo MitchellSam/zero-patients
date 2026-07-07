@@ -21,6 +21,12 @@ export const GameActionSchema = z.object({ action: PlayerActionSchema });
 
 // ---------- lobby + game views (server -> clients) ----------
 
+/** The printed board track: cards drawn per infection step, by marker position. */
+export const INFECTION_RATE_TRACK = [2, 2, 2, 3, 3, 4, 4] as const;
+
+export const CARDS_TO_CURE = 5;
+export const CARDS_TO_CURE_SCIENTIST = 4;
+
 export interface RoomView {
   code: string;
   started: boolean;
@@ -54,5 +60,6 @@ export interface GameSnapshot {
   researchStations: string[];
   outbreaks: number;
   infectionRate: number;
+  infectionRateIndex: number;
   result: { result: 'won' | 'lost'; reason: string } | null;
 }

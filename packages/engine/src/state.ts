@@ -1,6 +1,9 @@
 import {
+  CARDS_TO_CURE,
+  CARDS_TO_CURE_SCIENTIST,
   CITIES,
   CITY_IDS,
+  INFECTION_RATE_TRACK,
   type Card,
   type CityId,
   type DiseaseColor,
@@ -9,13 +12,12 @@ import {
 } from '@zero-patients/shared';
 import { shuffle } from './rng.js';
 
+export { CARDS_TO_CURE, CARDS_TO_CURE_SCIENTIST, INFECTION_RATE_TRACK };
+
 export const HAND_LIMIT = 7;
 export const CUBES_PER_COLOR = 24;
 export const MAX_STATIONS = 6;
 export const MAX_OUTBREAKS = 8;
-export const INFECTION_RATE_TRACK = [2, 2, 2, 3, 3, 4, 4] as const;
-export const CARDS_TO_CURE = 5;
-export const CARDS_TO_CURE_SCIENTIST = 4;
 
 export type CureStatus = 'active' | 'cured' | 'eradicated';
 

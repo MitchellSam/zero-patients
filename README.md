@@ -14,8 +14,11 @@ packages/
 └── engine/    # the rules: a pure `applyAction(state, playerId, action)` reducer.
                # No I/O, seeded RNG in-state → deterministic and replayable.
 apps/
-└── server/    # socket.io: rooms, reconnect tokens, action routing, snapshots
-               # `npm run dev -w @zero-patients/server` (PORT=3001)
+├── server/    # socket.io: rooms, reconnect tokens, action routing, snapshots
+│              # `npm run dev -w @zero-patients/server` (PORT=3001)
+└── web/       # Vite + React: `/` create/join, `/board/:code` TV view,
+               # `/play/:code` phone controller
+               # `npm run dev -w @zero-patients/web` (5173, VITE_SERVER_URL to point elsewhere)
 ```
 
 The engine validates every action and returns `{ state, events }` — events drive
@@ -30,8 +33,11 @@ board animations. Clients never enforce rules.
 - [x] Server: 4-letter room codes, socket.io protocol (zod-validated at the edge),
       reconnect tokens, board/spectator watch, snapshot redaction (deck order stays server-side)
 - [ ] Redis-backed rooms (in-memory for now; single node)
-- [ ] Web: board (TV) + controller (phone) — see `../pandemic-board-mockup.html`
-      and `../pandemic-controller-mockup.html` for the design direction
+- [x] Web: board (TV) with live SVG map + controller (phone) with legality-aware
+      actions; reconnect via localStorage token. Design per `../pandemic-board-mockup.html`
+      and `../pandemic-controller-mockup.html` (custom CSS ported from the mockups;
+      Tailwind deferred)
+- [ ] Animations (Motion), sounds, QR code on the lobby screen
 
 ## Development
 
