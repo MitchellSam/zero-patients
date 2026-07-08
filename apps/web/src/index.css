@@ -69,8 +69,9 @@ input, select { font: inherit; color: var(--text); }
   height: 62px; flex: none; z-index: 3; backdrop-filter: blur(6px);
 }
 .b-bar.bottom { border-bottom: 0; border-top: 1px solid var(--border-strong); height: 58px; }
-.b-title { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 17px; letter-spacing: 0.22em; }
-.b-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; color: var(--dim); margin-left: 12px; }
+.brand { display: flex; flex-direction: column; gap: 3px; flex: none; }
+.b-title { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 17px; letter-spacing: 0.22em; white-space: nowrap; }
+.b-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; color: var(--dim); white-space: nowrap; }
 .readouts { display: flex; align-items: center; gap: 30px; padding-right: 6px; flex: none; }
 .readout { display: flex; flex-direction: column; gap: 5px; height: 36px; justify-content: space-between; }
 .track { display: flex; gap: 4px; align-items: center; min-height: 20px; }

@@ -36,7 +36,7 @@ export default function Board() {
     return (
       <div className="board-page">
         <div className="b-bar">
-          <div style={{ display: 'flex', alignItems: 'baseline' }}>
+          <div className="brand">
             <div className="b-title">ZERO&nbsp;PATIENTS</div>
             <div className="b-sub">WAITING FOR PLAYERS</div>
           </div>
@@ -77,9 +77,9 @@ export default function Board() {
   return (
     <div className="board-page">
       <header className="b-bar">
-        <div style={{ display: 'flex', alignItems: 'baseline' }}>
+        <div className="brand">
           <div className="b-title">ZERO&nbsp;PATIENTS</div>
-          <div className="b-sub">GLOBAL SITUATION // TURN {String(snapshot.turnNumber).padStart(2, '0')}</div>
+          <div className="b-sub">TURN {String(snapshot.turnNumber).padStart(2, '0')}</div>
         </div>
         <div className="readouts">
           <div className="readout">
