@@ -35,9 +35,9 @@ export default function Home() {
       <div className="home-scrim" />
       <div className="home-inner">
         <h1 className="home-title">
-          ZERO<span className="home-title-sep">//</span>PATIENTS
+          ZERO<span className="home-title-sep">//</span><span>PATIENTS</span>
         </h1>
-        <div className="home-sub label">GLOBAL OUTBREAK RESPONSE — COOPERATIVE</div>
+        <div className="home-sub label"><span>GLOBAL OUTBREAK RESPONSE — COOPERATIVE</span></div>
         <div className="tagline">Board on the TV. Phones as controllers. Save the world together.</div>
 
         <div className="panel">

@@ -33,12 +33,15 @@ input, select { font: inherit; color: var(--text); }
 .home-inner { position: relative; z-index: 1; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 14px; }
 .home-title {
   font-family: 'JetBrains Mono', monospace; font-weight: 700;
-  letter-spacing: 0.22em; text-indent: 0.22em; font-size: clamp(28px, 5vw, 44px);
+  letter-spacing: 0.22em; font-size: clamp(28px, 5vw, 44px);
   text-align: center; white-space: nowrap;
   text-shadow: 0 0 24px rgba(56,189,248,0.45), 0 0 60px rgba(56,189,248,0.2);
 }
+/* trailing letter-space shifts centered text left — cancel it on the last glyph */
+.home-title > span:last-child, .home-sub > span:last-child { margin-right: -0.22em; }
 .home-title-sep { color: var(--red); text-shadow: 0 0 18px rgba(244,63,94,0.6); }
 .home-sub { text-align: center; letter-spacing: 0.34em; }
+.home-sub > span:last-child { margin-right: -0.34em; }
 .home .tagline { text-align: center; color: var(--dim); font-size: 13px; margin-bottom: 14px; }
 .home .panel { background: rgba(17,29,48,0.88); backdrop-filter: blur(4px); }
 .panel { background: var(--panel-2); border: 1px solid var(--border); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -91,14 +94,20 @@ input, select { font: inherit; color: var(--text); }
 .vignette { position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse 90% 80% at 50% 45%, transparent 55%, rgba(2,6,14,0.75) 100%); }
 .citylabel {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em;
-  fill: var(--dim); text-anchor: middle; text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.12em;
+  fill: rgba(226,232,240,0.78); text-anchor: middle; text-transform: uppercase;
+  paint-order: stroke; stroke: rgba(6,11,22,0.9); stroke-width: 3px;
 }
-.citylabel.hot { fill: rgba(226,232,240,0.9); }
+.citylabel.hot { fill: #ffffff; font-weight: 600; }
 .halo { transform-box: fill-box; transform-origin: center; animation: pulse 1.8s ease-out infinite; }
 @keyframes pulse {
   0% { transform: scale(0.55); opacity: 0.9; }
   70%, 100% { transform: scale(1.5); opacity: 0; }
+}
+.orbit { animation: orbit linear infinite; }
+@keyframes orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 .turnchip { display: flex; align-items: center; gap: 12px; }
 .turnchip .swatch { width: 14px; height: 14px; border-radius: 50%; }

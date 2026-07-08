@@ -22,7 +22,7 @@ export default function MapBackdrop() {
 
   return (
     <svg className="map-backdrop" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
-      <g stroke="rgba(110,150,210,0.16)" strokeWidth={1}>
+      <g stroke="rgba(130,170,230,0.22)" strokeWidth={1.4}>
         {edges.map(([a, b]) => (
           <line
             key={`${a}|${b}`}
