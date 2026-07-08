@@ -10,7 +10,7 @@ const COLORS: DiseaseColor[] = ['blue', 'yellow', 'black', 'red'];
 
 export default function Board() {
   const { code = '' } = useParams();
-  const { room, snapshot, feed, setRoom, setGame } = useStore();
+  const { room, snapshot, feed, recentInfections, setRoom, setGame } = useStore();
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -121,7 +121,7 @@ export default function Board() {
       </header>
 
       <main className="b-map">
-        <BoardMap snapshot={snapshot} />
+        <BoardMap snapshot={snapshot} recentInfections={recentInfections} />
         <div className="vignette" />
         {snapshot.result && (
           <div className={`overlay ${snapshot.result.result}`}>
@@ -146,11 +146,14 @@ export default function Board() {
           </div>
         </div>
         <div className="feed">
-          {feed.slice(-3).map((e, i) => (
-            <div key={i} className={['epidemic', 'outbreak', 'game-over'].includes(e.type) ? 'alert' : ''}>
-              {describeEvent(e, playerName)}
-            </div>
-          ))}
+          {feed
+            .filter((e) => e.type !== 'turn-started') // the turn chip already shows this
+            .slice(-3)
+            .map((e, i) => (
+              <div key={i} className={['epidemic', 'outbreak', 'game-over'].includes(e.type) ? 'alert' : ''}>
+                {describeEvent(e, playerName)}
+              </div>
+            ))}
         </div>
         <div className="roomcode">
           ROOM <b>{code}</b>

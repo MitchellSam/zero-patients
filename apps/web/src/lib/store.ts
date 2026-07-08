@@ -25,6 +25,8 @@ interface Store {
   snapshot: GameSnapshot | null;
   /** most recent broadcast's events — drives the board feed/animations */
   feed: GameEvent[];
+  /** cities hit in the latest infection step — pulsed on the board until the next one */
+  recentInfections: Set<string>;
   setSession: (s: Session | null) => void;
   setRoom: (r: RoomView | null) => void;
   setGame: (snapshot: GameSnapshot | null, events?: GameEvent[]) => void;
@@ -35,13 +37,25 @@ export const useStore = create<Store>((set) => ({
   room: null,
   snapshot: null,
   feed: [],
+  recentInfections: new Set(),
   setSession: (session) => {
     if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     else localStorage.removeItem(SESSION_KEY);
     set({ session });
   },
   setRoom: (room) => set({ room }),
-  setGame: (snapshot, events = []) => set({ snapshot, feed: events }),
+  setGame: (snapshot, events = []) =>
+    set((prev) => {
+      const infected = events
+        .filter((e) => e.type === 'infected' || e.type === 'epidemic' || e.type === 'outbreak')
+        .map((e) => e.city);
+      return {
+        snapshot,
+        feed: events,
+        // a batch with no infections (ordinary actions) keeps the previous pulses
+        recentInfections: infected.length ? new Set(infected) : prev.recentInfections,
+      };
+    }),
 }));
 
 socket.on('room:update', (room: RoomView) => useStore.getState().setRoom(room));

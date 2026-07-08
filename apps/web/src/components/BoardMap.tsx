@@ -1,8 +1,10 @@
+import { useEffect, useRef, useState } from 'react';
 import { CITIES, CITY_IDS, type CityId, type DiseaseColor, type GameSnapshot } from '@zero-patients/shared';
 import { DISEASE_COLORS, PLAYER_COLORS } from '../lib/game.js';
 
 const W = 1920;
 const H = 1080;
+const MIN_VIEW_W = W / 4; // 4× max zoom
 
 // undirected route list, computed once
 const EDGES: [CityId, CityId][] = [];
@@ -73,7 +75,74 @@ function Meeple({ x, y, color }: { x: number; y: number; color: string }) {
 
 const COLOR_ORDER: DiseaseColor[] = ['blue', 'yellow', 'black', 'red'];
 
-export default function BoardMap({ snapshot }: { snapshot: GameSnapshot }) {
+interface ViewBox {
+  x: number;
+  y: number;
+  w: number;
+}
+
+const clampView = (v: ViewBox): ViewBox => {
+  const w = Math.min(Math.max(v.w, MIN_VIEW_W), W);
+  const h = (w * H) / W;
+  return {
+    w,
+    x: Math.min(Math.max(v.x, 0), W - w),
+    y: Math.min(Math.max(v.y, 0), H - h),
+  };
+};
+
+export default function BoardMap({
+  snapshot,
+  recentInfections,
+}: {
+  snapshot: GameSnapshot;
+  /** cities infected in the most recent infection step — they get the pulse */
+  recentInfections: ReadonlySet<string>;
+}) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [view, setView] = useState<ViewBox>({ x: 0, y: 0, w: W });
+  const drag = useRef<{ px: number; py: number; view: ViewBox } | null>(null);
+
+  // wheel zoom anchored at the cursor (non-passive so we can preventDefault)
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = svg.getBoundingClientRect();
+      const fx = (e.clientX - rect.left) / rect.width;
+      const fy = (e.clientY - rect.top) / rect.height;
+      setView((v) => {
+        const w = v.w * (e.deltaY > 0 ? 1.18 : 1 / 1.18);
+        const clampedW = Math.min(Math.max(w, MIN_VIEW_W), W);
+        return clampView({
+          w: clampedW,
+          x: v.x + fx * (v.w - clampedW),
+          y: v.y + fy * ((v.w * H) / W - (clampedW * H) / W),
+        });
+      });
+    };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, []);
+
+  const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    drag.current = { px: e.clientX, py: e.clientY, view };
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    const d = drag.current;
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!d || !rect) return;
+    const scale = d.view.w / rect.width;
+    setView(clampView({
+      w: d.view.w,
+      x: d.view.x - (e.clientX - d.px) * scale,
+      y: d.view.y - (e.clientY - d.py) * scale,
+    }));
+  };
+  const onPointerUp = () => (drag.current = null);
+
   // players grouped per city so co-located meeples fan out side by side
   const meeplesByCity = new Map<string, { color: string }[]>();
   snapshot.players.forEach((p, i) => {
@@ -83,7 +152,17 @@ export default function BoardMap({ snapshot }: { snapshot: GameSnapshot }) {
   });
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice">
+    <svg
+      ref={svgRef}
+      className="board-svg"
+      viewBox={`${view.x} ${view.y} ${view.w} ${(view.w * H) / W}`}
+      preserveAspectRatio="xMidYMid slice"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerLeave={onPointerUp}
+      onDoubleClick={() => setView({ x: 0, y: 0, w: W })}
+    >
       <g>
         {Array.from({ length: Math.ceil(W / 96) + 1 }, (_, i) => (
           <line key={`v${i}`} x1={i * 96} y1={0} x2={i * 96} y2={H} stroke="rgba(120,160,220,0.045)" />
@@ -114,12 +193,13 @@ export default function BoardMap({ snapshot }: { snapshot: GameSnapshot }) {
         const total = infectedColors.reduce((a, k) => a + cubes[k], 0);
         const x = px(id);
         const y = py(id);
-        // lift the label clear of meeples and the outermost orbit ring
-        const orbitTop = infectedColors.length ? 17 + (infectedColors.length - 1) * 8 + 6 : 0;
-        const labelY = y - Math.max(16, orbitTop + 10, meeplesByCity.has(id) ? 32 : 0);
+        const hasMeeples = meeplesByCity.has(id);
+        // labels sit below the city (meeples occupy the top), clear of orbit rings
+        const orbitExtent = infectedColors.length ? 17 + (infectedColors.length - 1) * 8 + 4 : 0;
+        const labelY = y + (orbitExtent ? orbitExtent + 16 : 24);
         return (
           <g key={id}>
-            {total > 0 && (
+            {recentInfections.has(id) && (
               <circle className="halo" cx={x} cy={y} r={15} fill="none" stroke={col} strokeWidth={1.5}
                 style={{ animationDelay: `${(x % 9) / 5}s` }} />
             )}
@@ -127,32 +207,38 @@ export default function BoardMap({ snapshot }: { snapshot: GameSnapshot }) {
               stroke="#0a0f1a" strokeWidth={1.5}
               style={{ filter: `drop-shadow(0 0 ${total ? 10 : 5}px ${col})` }} />
 
-            {/* infection cubes orbit their city — one ring per disease color */}
-            {infectedColors.map((color, ring) =>
-              Array.from({ length: cubes[color] }, (_, i) => {
-                const radius = 17 + ring * 8;
-                const startAngle = (360 / cubes[color]) * i + ((x * 7) % 60);
-                const cc = DISEASE_COLORS[color];
-                return (
-                  <g key={`${color}${i}`} transform={`rotate(${startAngle} ${x} ${y})`}>
-                    <g
-                      className="orbit"
-                      style={{
-                        transformOrigin: `${x}px ${y}px`,
-                        animationDuration: `${7 + ring * 2.5}s`,
-                        animationDirection: ring % 2 ? 'reverse' : 'normal',
-                      }}
-                    >
-                      <rect x={x + radius - 3.5} y={y - 3.5} width={7} height={7} rx={1.5}
-                        fill={cc} stroke="#0a0f1a" strokeWidth={1}
-                        style={{ filter: `drop-shadow(0 0 4px ${cc})` }} />
-                    </g>
+            {/* infection cubes orbit their city — one ring per disease color.
+                the whole ring is a single animated group, so cubes always stay
+                evenly spaced no matter when they were added */}
+            {infectedColors.map((color, ring) => {
+              const count = cubes[color];
+              const radius = 17 + ring * 8;
+              const cc = DISEASE_COLORS[color];
+              return (
+                <g key={`${color}-${count}`} transform={`rotate(${(x * 7) % 60} ${x} ${y})`}>
+                  <g
+                    className="orbit"
+                    style={{
+                      transformOrigin: `${x}px ${y}px`,
+                      animationDuration: `${7 + ring * 2.5}s`,
+                      animationDirection: ring % 2 ? 'reverse' : 'normal',
+                    }}
+                  >
+                    {Array.from({ length: count }, (_, i) => (
+                      <g key={i} transform={`rotate(${(360 / count) * i} ${x} ${y})`}>
+                        <rect x={x + radius - 3.5} y={y - 3.5} width={7} height={7} rx={1.5}
+                          fill={cc} stroke="#0a0f1a" strokeWidth={1}
+                          style={{ filter: `drop-shadow(0 0 4px ${cc})` }} />
+                      </g>
+                    ))}
                   </g>
-                );
-              })
-            )}
+                </g>
+              );
+            })}
 
-            {snapshot.researchStations.includes(id) && <Station x={x - 22} y={y - 14} />}
+            {/* station sits centered above its city, stepping aside for meeples */}
+            {snapshot.researchStations.includes(id) &&
+              (hasMeeples ? <Station x={x - 22} y={y - 14} /> : <Station x={x} y={y - 18} />)}
 
             <text className={`citylabel${total ? ' hot' : ''}`} x={x} y={labelY}>{c.name}</text>
           </g>
