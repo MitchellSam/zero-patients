@@ -8,8 +8,8 @@ const MIN_VIEW_W = W / 4; // 4× max zoom
 
 // cities render in a slightly compressed vertical band: the board is cropped
 // top/bottom by `slice` on wide screens, and the bottom bar was eating Santiago
-const SQUEEZE = 0.9;
-const TOP_PAD = 24;
+const SQUEEZE = 1;
+const TOP_PAD = -70;
 const sy = (frac: number) => frac * H * SQUEEZE + TOP_PAD;
 
 // undirected route list, computed once
@@ -44,16 +44,16 @@ const py = (id: CityId) => sy(CITIES[id].y);
 // label placement, precomputed from static geometry: labels prefer the space
 // below their city, but flip above when another city's marker sits there
 const LABEL_ABOVE = new Set<CityId>();
-for (const id of CITY_IDS) {
-  const blocked = (dyLo: number, dyHi: number) =>
-    CITY_IDS.some((other) => {
-      if (other === id) return false;
-      const dy = py(other) - py(id);
-      return Math.abs(px(other) - px(id)) < 72 && dy > dyLo && dy < dyHi;
-    });
-  // window covers worst case: an infected label pushed low + the neighbor's orbit ring
-  if (blocked(10, 78) && !blocked(-78, -10)) LABEL_ABOVE.add(id);
-}
+// for (const id of CITY_IDS) {
+//   const blocked = (dyLo: number, dyHi: number) =>
+//     CITY_IDS.some((other) => {
+//       if (other === id) return false;
+//       const dy = py(other) - py(id);
+//       return Math.abs(px(other) - px(id)) < 72 && dy > dyLo && dy < dyHi;
+//     });
+//   // window covers worst case: an infected label pushed low + the neighbor's orbit ring
+//   if (blocked(10, 78) && !blocked(-78, -10)) LABEL_ABOVE.add(id);
+// }
 
 // classic board-game meeple, 100×100 box, feet on y=97
 const MEEPLE_PATH =
