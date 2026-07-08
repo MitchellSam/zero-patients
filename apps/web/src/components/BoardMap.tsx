@@ -6,6 +6,12 @@ const W = 1920;
 const H = 1080;
 const MIN_VIEW_W = W / 4; // 4× max zoom
 
+// cities render in a slightly compressed vertical band: the board is cropped
+// top/bottom by `slice` on wide screens, and the bottom bar was eating Santiago
+const SQUEEZE = 0.9;
+const TOP_PAD = 24;
+const sy = (frac: number) => frac * H * SQUEEZE + TOP_PAD;
+
 // undirected route list, computed once
 const EDGES: [CityId, CityId][] = [];
 {
@@ -33,7 +39,21 @@ const BLOBS: [number, number, number, number][] = [
 ];
 
 const px = (id: CityId) => CITIES[id].x * W;
-const py = (id: CityId) => CITIES[id].y * H;
+const py = (id: CityId) => sy(CITIES[id].y);
+
+// label placement, precomputed from static geometry: labels prefer the space
+// below their city, but flip above when another city's marker sits there
+const LABEL_ABOVE = new Set<CityId>();
+for (const id of CITY_IDS) {
+  const blocked = (dyLo: number, dyHi: number) =>
+    CITY_IDS.some((other) => {
+      if (other === id) return false;
+      const dy = py(other) - py(id);
+      return Math.abs(px(other) - px(id)) < 72 && dy > dyLo && dy < dyHi;
+    });
+  // window covers worst case: an infected label pushed low + the neighbor's orbit ring
+  if (blocked(10, 78) && !blocked(-78, -10)) LABEL_ABOVE.add(id);
+}
 
 // classic board-game meeple, 100×100 box, feet on y=97
 const MEEPLE_PATH =
@@ -173,7 +193,8 @@ export default function BoardMap({
       </g>
       <g opacity={0.4}>
         {BLOBS.map(([cx, cy, rx, ry], i) => (
-          <ellipse key={i} cx={cx} cy={cy} rx={rx} ry={ry} fill="rgba(90,130,190,0.05)" style={{ filter: 'blur(40px)' }} />
+          <ellipse key={i} cx={cx} cy={cy * SQUEEZE + TOP_PAD} rx={rx} ry={ry * SQUEEZE}
+            fill="rgba(90,130,190,0.05)" style={{ filter: 'blur(40px)' }} />
         ))}
       </g>
       <g stroke="rgba(130,170,230,0.32)" strokeWidth={1.6}>
@@ -181,7 +202,7 @@ export default function BoardMap({
           <line key={`${a}|${b}`} x1={px(a)} y1={py(a)} x2={px(b)} y2={py(b)} />
         ))}
         {WRAP.map(([id, x, yf], i) => (
-          <line key={`w${i}`} x1={px(id)} y1={py(id)} x2={x} y2={yf * H} strokeDasharray="4 7" />
+          <line key={`w${i}`} x1={px(id)} y1={py(id)} x2={x} y2={sy(yf)} strokeDasharray="4 7" />
         ))}
       </g>
 
@@ -194,9 +215,12 @@ export default function BoardMap({
         const x = px(id);
         const y = py(id);
         const hasMeeples = meeplesByCity.has(id);
-        // labels sit below the city (meeples occupy the top), clear of orbit rings
+        // labels sit below the city (meeples occupy the top), clear of orbit
+        // rings — unless a neighboring marker blocks the space below
         const orbitExtent = infectedColors.length ? 17 + (infectedColors.length - 1) * 8 + 4 : 0;
-        const labelY = y + (orbitExtent ? orbitExtent + 16 : 24);
+        const labelY = LABEL_ABOVE.has(id)
+          ? y - Math.max(orbitExtent + 10, hasMeeples ? 34 : 16)
+          : y + (orbitExtent ? orbitExtent + 16 : 24);
         return (
           <g key={id}>
             {recentInfections.has(id) && (
