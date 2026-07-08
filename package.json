@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",
-    "typecheck": "npm run typecheck --workspaces --if-present"
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "run": "npm run dev -w @zero-patients/server & npm run dev -w @zero-patients/web"
   },
   "engines": {
     "node": ">=20"

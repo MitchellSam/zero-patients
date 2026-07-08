@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ask } from '../lib/socket.js';
 import { useStore } from '../lib/store.js';
+import MapBackdrop from '../components/MapBackdrop.js';
 
 interface SeatAck {
   code: string;
@@ -30,8 +31,13 @@ export default function Home() {
 
   return (
     <div className="home">
+      <MapBackdrop />
+      <div className="home-scrim" />
       <div className="home-inner">
-        <h1>ZERO&nbsp;PATIENTS</h1>
+        <h1 className="home-title">
+          ZERO<span className="home-title-sep">//</span>PATIENTS
+        </h1>
+        <div className="home-sub label">GLOBAL OUTBREAK RESPONSE — COOPERATIVE</div>
         <div className="tagline">Board on the TV. Phones as controllers. Save the world together.</div>
 
         <div className="panel">
