@@ -1,0 +1,12 @@
+# Render Blueprint: socket server for the GitHub Pages client.
+# Free plan sleeps after ~15 min idle; first connection wakes it (~30-60s).
+services:
+  - type: web
+    name: zero-patients-server
+    runtime: node
+    plan: free
+    buildCommand: npm ci --include=dev
+    startCommand: npm start --workspace @zero-patients/server
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0

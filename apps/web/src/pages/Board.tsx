@@ -43,7 +43,7 @@ export default function Board() {
         </div>
         <div className="b-lobby">
           <div className="b-lobby-inner">
-            <div className="label">JOIN AT {window.location.host} WITH CODE</div>
+            <div className="label">JOIN AT {window.location.host + import.meta.env.BASE_URL} WITH CODE</div>
             <div className="bigcode">{code}</div>
             <div className="seats">
               {Array.from({ length: 4 }, (_, i) => {

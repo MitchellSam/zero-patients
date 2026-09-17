@@ -91,7 +91,7 @@ export default function Controller() {
           )}
           {!isHost && <div className="label" style={{ textAlign: 'center', marginTop: 8 }}>waiting for the host…</div>}
           <div className="label" style={{ textAlign: 'center', marginTop: 16 }}>
-            TV: open {window.location.host}/board/{code}
+            TV: open {window.location.host + import.meta.env.BASE_URL}board/{code}
           </div>
         </div>
         {toast && <div className="toast">{toast}</div>}
