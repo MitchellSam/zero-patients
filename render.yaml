@@ -1,12 +1,21 @@
-# Render Blueprint: socket server for the GitHub Pages client.
-# Free plan sleeps after ~15 min idle; first connection wakes it (~30-60s).
+# Render Blueprint — the source of truth for this project's server infrastructure.
+# Linked to a Blueprint instance in the Render dashboard: edit this file, commit,
+# and sync from the dashboard to apply. Dashboard edits to these fields get
+# overwritten on the next sync.
+#
+# Free plan sleeps after ~15 min idle; the first connection wakes it (~30-60s).
 services:
   - type: web
     name: zero-patients-server
     runtime: node
     plan: free
+    region: ohio
+    branch: main
+    autoDeploy: true
+    # Dev dependencies are required: the server runs through tsx.
     buildCommand: npm ci --include=dev
     startCommand: npm start --workspace @zero-patients/server
     envVars:
       - key: NODE_VERSION
         value: 22.12.0
+    # No healthCheckPath: the server exposes only socket.io, no plain HTTP route.
